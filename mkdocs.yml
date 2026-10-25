@@ -1,0 +1,30 @@
+site_name: Open WebUI for Mere Mortals
+site_description: A friendly front door for language models you run yourself. One web page for your Ollama and OpenAI-compatible servers, with accounts for the household, documents your models can read, and tools they can call.
+site_url: https://paulsullivan33-dev.github.io/open-webui-for-mere-mortals/
+
+# Guides live at the repo root (nice for GitHub browsing).
+# The deploy workflow copies them into docs/ before building.
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - What Open WebUI Is: what-open-webui-is.md
+  - The Moving Parts: the-moving-parts.md
+  - Installing Open WebUI: installing-open-webui.md
+  - Your First Sign-in: your-first-sign-in.md
+  - Connecting Ollama: connecting-ollama.md
+  - Connecting OpenAI-Compatible Endpoints: connecting-openai-endpoints.md
+  - Your First Chat: your-first-chat.md
+  - Models and Per-Model Settings: models-and-settings.md
+  - Users and Roles: users-and-roles.md
+  - Documents and Knowledge: documents-and-knowledge.md
+  - Tool Servers: tool-servers.md
+  - Running It for Real: running-it-for-real.md
+  - Backup and Updates: backup-and-updates.md
+  - Recipes: recipes.md
+  - The Neighbours: the-neighbours.md
+  - Limits: limits.md
+  - Troubleshooting: troubleshooting.md
+  - Glossary: glossary.md
+  - Writing Criteria: criteria.md

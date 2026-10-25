@@ -1,0 +1,36 @@
+The pip route (chapter 3), in a fresh
+virtual environment. The plain install
+command is:
+
+  python3 -m venv open-webui-venv
+  open-webui-venv/bin/pip install torch \
+      --index-url https://download.pytorch.org/whl/cpu
+  open-webui-venv/bin/pip install open-webui
+
+In this sandbox the package index
+connection repeatedly died mid-download
+(see criteria.md), so the lab resolved
+the dependency list once, fetched every
+wheel with curl into a local folder,
+and installed offline:
+
+$ open-webui-venv/bin/pip install \
+    --no-index --find-links wheelhouse open-webui
+...
+Successfully installed ... open-webui-0.12.3 ...
+(exit 0; 240+ packages, including
+fastapi 0.136.3, uvicorn 0.51.0,
+chromadb 1.5.9, sentence-transformers
+5.5.1, transformers 5.5.4, onnxruntime
+1.26.0, scipy 1.18.1 — against the
+pre-installed torch 2.14.1+cpu.)
+
+The llama.cpp OpenAI-compatible server
+(chapter 7) was installed the same way:
+
+$ open-webui-venv/bin/pip install \
+    --no-index --find-links wheelhouse \
+    llama-cpp-python starlette-context
+Successfully installed diskcache-5.6.3
+  llama-cpp-python-0.3.36
+  starlette-context-0.5.1

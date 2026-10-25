@@ -1,0 +1,63 @@
+A tool server (chapter 12).
+
+The lab's tool server is a short
+Python program (standard library only)
+offering exactly one tool over an
+OpenAPI description:
+
+  GET /multiply?a=<number>&b=<number>
+      -> {"result": <number>}
+
+$ curl -s "http://127.0.0.1:8100/multiply?a=3917&b=517"
+{"result": 2025089}
+
+$ curl -s "http://127.0.0.1:8100/multiply?a=2&b=3"
+{"result": 6}
+
+Connected and verified through Open
+WebUI's own API — the verify call
+makes Open WebUI fetch the spec:
+
+$ curl -s -X POST \
+    .../api/v1/configs/tool_servers/verify \
+    -d '{"url":"http://127.0.0.1:8100",
+         "path":"openapi.json",
+         "type":"openapi", ...}'
+{"openapi":"3.1.0","info":{"title":"Lab Tools",
+ "version":"1.0.0"},"paths":{"/multiply":{...}}}
+
+$ curl -s -X POST .../api/v1/configs/tool_servers \
+    -d '{"TOOL_SERVER_CONNECTIONS":[{...}]}'
+(connection saved with id "lab-tools",
+name "Lab Tools", enabled; read back
+unchanged by a later GET)
+
+Then the chat, with the tool server
+attached to the request:
+
+$ curl -s .../api/chat/completions -d \
+  '{"model":"smollm2-q4km.gguf",
+    "messages":[{"role":"user","content":
+      "What is 3917 times 517?
+       Use the multiply tool."}],
+    "tool_servers":[<the connection>]}'
+
+"content": "To multiply two numbers, we
+need to follow these steps:
+1. First, add the values together
+(multiply): 3917 * 517 = 1864220. ..."
+
+The tool server's own log for the
+whole session shows the spec fetch —
+and no /multiply call. The model never
+called the tool; it answered from its
+own head and got 1,864,220 (a second
+attempt, in native function-calling
+mode, produced 8,479,318; the tool's
+answer is 2,025,089). Connection:
+verified. The call: not made — a
+135M-parameter model is below the
+size at which tool-calling can be
+relied on, which is chapter 12's
+warning, demonstrated rather than
+asserted.

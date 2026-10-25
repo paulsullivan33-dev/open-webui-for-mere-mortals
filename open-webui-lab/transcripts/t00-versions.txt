@@ -1,0 +1,24 @@
+$ python3 --version
+Python 3.12.3
+
+$ pip show open-webui | head -2
+Name: open-webui
+Version: 0.12.3
+
+$ python3 -c "import llama_cpp; print(llama_cpp.__version__)"
+0.3.36
+
+$ curl -s http://127.0.0.1:11435/api/version
+{"version":"0.40.11"}
+
+(The Ollama answering there is the
+official Linux tarball, extracted into
+the lab folder — see criteria.md for
+why the sandbox's pre-installed copy
+could not be used: its inference
+runner was missing.)
+
+$ uname -srm; nproc; free -m | sed -n 2p
+Linux 7.0.0-39-generic x86_64
+2
+Mem:            7935  ...  (MB)

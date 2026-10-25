@@ -1,0 +1,76 @@
+Lab notes — Open WebUI for Mere Mortals
+=======================================
+
+Machine: 2 CPU, ~7.9 GB RAM, Ubuntu
+24.04, Python 3.12.3. Everything ran
+on loopback; nothing was exposed.
+
+Versions: Open WebUI 0.12.3 (pip),
+torch 2.14.1+cpu, Ollama 0.40.11
+(official tarball), llama-cpp-python
+0.3.36. Model: SmolLM2-135M-Instruct
+GGUF, Q4_K_M, 105,454,432 bytes,
+served two ways — by llama.cpp's
+server (the OpenAI dialect) and by
+Ollama (created from the same file).
+
+What surprised the lab, in order:
+
+1. The package index would not stay
+   connected for large wheels (pip's
+   downloads died, repeatably, around
+   8 MB, and its resume returned zero
+   bytes). curl moved the same files
+   without trouble, so the lab
+   resolved the tree once, fetched
+   240+ wheels with curl, and
+   installed offline. A sandbox
+   property, not an Open WebUI one —
+   but it is why t01 looks unusual.
+
+2. The sandbox's own Ollama install
+   was a shell: the CLI existed, its
+   inference runner (lib/ollama) did
+   not, and the sandbox later removed
+   even that. The official tarball
+   (1.5 GB through the same straw)
+   supplied a working one.
+
+3. The embedding model's first-start
+   download failed on the sandbox's
+   proxy variables ("Invalid port:
+   ':1]'"). Files fetched with curl
+   into the Hugging Face cache, plus
+   a proxy-free start, loaded it.
+
+4. Version 0.12.3 turns sign-ups OFF
+   when the first (admin) account is
+   created. Chapters 4 and 10 were
+   corrected to the observed flow
+   (t03, t05).
+
+5. Sharing a preset is not enough:
+   in 0.12.3 the person you share
+   with also needs a grant on the
+   base model, or their first chat
+   with the preset answers "Model
+   not found" (t05). The chapters
+   say so now.
+
+6. The 135M model, asked three times
+   for exactly three words, produced
+   "Hi!", "\"Hi, hello.\"", and
+   "Hi! Hello! Hello!". Asked for a
+   product it could have looked up
+   in the attached tool, it invented
+   two different wrong answers
+   instead. Small models are honest
+   about being small only in their
+   scores, never in their confidence.
+
+RAM notes: Open WebUI idles at a few
+hundred MB with its embedding model
+loaded; the whole lab (web UI, two
+backends, tool server) coexisted in
+under 2 GB. The pip install is the
+heavy part — several GB of wheels.

@@ -1,0 +1,97 @@
+Two backends, one picker (chapters
+6, 7 and 8). The model throughout is
+SmolLM2-135M-Instruct, Q4_K_M — about
+as small as a chat model gets, which
+is why its answers are specimens as
+much as results.
+
+== The OpenAI-compatible door (ch. 7) ==
+
+llama.cpp's server (llama-cpp-python),
+holding the model as a GGUF file:
+
+$ python -m llama_cpp.server \
+    --model smollm2-q4km.gguf \
+    --host 127.0.0.1 --port 8001
+
+$ curl -s http://127.0.0.1:8001/v1/models
+{"object":"list","data":[{"id":"smollm2-q4km.gguf",
+ "object":"model","owned_by":"me",...}]}
+
+$ curl -s .../v1/chat/completions -d \
+  '{"model":"smollm2-q4km.gguf","messages":
+    [{"role":"user","content":
+      "Say hello in exactly three words."}],
+    "max_tokens":32}'
+... "content": "Hi!" ...
+"usage": {"prompt_tokens": 37,
+          "completion_tokens": 2,
+          "total_tokens": 39}
+
+Connected to Open WebUI as an admin
+(chapter 7's admin pages, done here by
+API):
+
+$ curl -s -X POST .../openai/config/update \
+    -d '{"OPENAI_API_BASE_URLS":
+         ["http://127.0.0.1:8001/v1"], ...}'
+{"ENABLE_OPENAI_API":true,
+ "OPENAI_API_BASE_URLS":["http://127.0.0.1:8001/v1"],
+ "OPENAI_API_KEYS":["<redacted>"], ...}
+(the key is stored, and read back only
+as <redacted>)
+
+$ curl -s .../api/models   (admin token)
+{"data":[{"id":"smollm2-q4km.gguf",
+  "owned_by":"openai", ...}]}
+
+$ curl -s .../api/chat/completions -d \
+  '{"model":"smollm2-q4km.gguf", ...}'
+"content": "\"Hi, hello.\""
+"usage": {"prompt_tokens": 37,
+          "completion_tokens": 5, ...}
+
+== The Ollama door (chapter 6) ==
+
+Ollama 0.40.11 (official tarball,
+extracted in the lab) on port 11435,
+its model made from the same GGUF —
+the registry pull was defeated by the
+sandbox's proxy, so the lab used
+Ollama's offline route:
+
+$ ollama create smollm2-lab -f Modelfile.smollm2
+  (Modelfile: FROM .../smollm2-q4km.gguf)
+... success
+
+$ curl -s http://127.0.0.1:11435/api/tags
+{"models":[{"name":"smollm2-lab:latest",
+  "size":105454711, "details":{
+  "parameter_size":"134.52M",
+  "quantization_level":"Q4_K_M",
+  "runner":"llamacpp"}, ...}]}
+
+$ curl -s .../api/generate -d \
+  '{"model":"smollm2-lab","stream":false,
+    "prompt":"Say hello in exactly three words."}'
+"response": "\"Hi, hello?\"", "eval_count": 6
+
+Open WebUI had been pointed at this
+Ollama from the start (OLLAMA_BASE_URL,
+chapter 6), and the picker now holds
+both doors side by side:
+
+$ curl -s .../api/models   (admin token)
+  smollm2-q4km.gguf    | owned_by: openai
+  smollm2-lab:latest   | owned_by: ollama
+  house-explainer      | owned_by: openai
+                         (the preset, t05)
+
+$ curl -s .../api/chat/completions -d \
+  '{"model":"smollm2-lab:latest", ...}'
+"content": "Hi! Hello! Hello!"
+"usage": {... "response_token/s": 93.77,
+          "eval_count": 7, ...}
+(the usage block carries Ollama's own
+timing fields through — the front door
+passes the backend's bookkeeping up)

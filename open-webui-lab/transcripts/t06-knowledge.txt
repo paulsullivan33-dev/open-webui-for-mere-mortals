@@ -1,0 +1,60 @@
+Documents and knowledge (chapter 11).
+
+The fixture document, written for the
+lab (boiler-notes.txt, 250 bytes):
+
+  Notes on the example house boiler.
+  The boiler is a Wexford 40,
+  installed in 2019.
+  Its service valve is painted green.
+  The manual says to bleed the
+  radiators every October.
+  The annual service is due each
+  spring, and the last service
+  cost 140 pounds.
+
+$ curl -s -X POST .../api/v1/files/ \
+    -F "file=@boiler-notes.txt"
+{"id":"19589d20-f459-419e-b5ad-9ee375d5b6cd",
+ "meta":{"name":"boiler-notes.txt",
+ "content_type":"text/plain","size":250,...}}
+
+$ curl -s -X POST .../api/v1/knowledge/create \
+    -d '{"name":"House Papers", ...}'
+{"id":"23bbd0d0-827e-4a18-ad29-2af8ffd60396", ...}
+
+(file added to the collection with
+POST /api/v1/knowledge/<id>/file/add)
+
+In the server log, the pipeline of
+chapter 11 happening:
+
+  INFO | retrieval:save_docs_to_vector_db -
+  embeddings generated 1 for 1 items
+  INFO | retrieval:save_docs_to_vector_db -
+  adding to collection 23bbd0d0-...
+  INFO | retrieval:save_docs_to_vector_db -
+  added 1 items to collection 23bbd0d0-...
+
+And the question, with the collection
+attached to the chat:
+
+$ curl -s .../api/chat/completions -d \
+  '{"model":"smollm2-q4km.gguf",
+    "messages":[{"role":"user","content":
+      "What colour is the boiler service
+       valve painted? Answer with the
+       colour only."}],
+    "files":[{"type":"collection",
+               "id":"23bbd0d0-..."}]}'
+
+"content": "The boiler service valve
+            is painted green."
+
+and the reply carries its source: the
+retrieved document text, quoted in
+the response's sources block with the
+collection it came from. The model
+knew nothing about any boiler until
+the document was fetched for it —
+which is the whole mechanism, working.

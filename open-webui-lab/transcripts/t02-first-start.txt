@@ -1,0 +1,48 @@
+First start (chapter 3):
+
+$ DATA_DIR=$PWD/data \
+  WEBUI_SECRET_KEY=$(cat webui-secret.txt) \
+  OLLAMA_BASE_URL=http://127.0.0.1:11435 \
+  open-webui-venv/bin/open-webui serve --port 8080
+
+The log shows the database being built
+(alembic migrations), then Uvicorn up.
+
+$ curl -s http://127.0.0.1:8080/health
+{"status":true}
+
+$ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/
+200
+
+$ curl -s http://127.0.0.1:8080/ | grep -o "<title>[^<]*</title>"
+<title>Open WebUI</title>
+
+$ curl -s http://127.0.0.1:8080/api/config
+{"onboarding":true,"status":true,
+ "name":"Open WebUI","version":"0.12.3",
+ ... "features":{... "enable_signup":true, ...}}
+
+One honest wart: on first start the
+embedding model (chapter 2) failed to
+download in this sandbox —
+
+  ERROR | open_webui.routers.retrieval:get_ef
+  Error loading SentenceTransformer: Invalid port: ':1]'
+
+— the sandbox's proxy environment
+breaking the Hugging Face client. The
+lab fetched the model's files with
+curl into the standard cache layout
+and restarted with proxy variables
+removed and HF_HUB_OFFLINE=1, after
+which the log shows:
+
+  INFO | sentence_transformers... Loading
+  SentenceTransformer model from
+  /home/hatch/.cache/huggingface/hub/
+  models--sentence-transformers--all-MiniLM-L6-v2/
+  snapshots/1110a243...
+
+Normal installs on normal networks
+simply download it on first start, as
+chapter 3 describes.

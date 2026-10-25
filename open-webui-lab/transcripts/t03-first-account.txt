@@ -1,0 +1,30 @@
+The first account (chapter 4):
+
+$ curl -s -X POST \
+    http://127.0.0.1:8080/api/v1/auths/signup \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"Ada Admin",
+         "email":"ada@example.com",
+         "password":"lab-password-1234"}'
+
+{
+  "id": "20a5bd5c-0952-42fe-98aa-68360b097fc6",
+  "name": "Ada Admin",
+  "role": "admin",
+  "email": "ada@example.com",
+  "token": "eyJhbGciOi... (truncated;
+            a full bearer token is returned)",
+  "token_type": "Bearer",
+  ...
+}
+
+"role":"admin" — the first account runs
+the place, exactly as chapter 4 says.
+
+And the door closed behind her: the
+admin configuration now reads
+"ENABLE_SIGNUP": false (the server set
+it when the first account was made), so
+a second sign-up is refused with 403
+until an administrator turns sign-ups
+back on. That flow is transcript t05.

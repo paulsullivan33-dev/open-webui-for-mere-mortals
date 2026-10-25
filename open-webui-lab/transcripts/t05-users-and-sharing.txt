@@ -1,0 +1,78 @@
+Users, roles and sharing (chapters
+9 and 10), all against the live API.
+
+1. With the first (admin) account
+   made, sign-ups are off:
+
+$ curl -s .../api/v1/auths/admin/config
+{... "ENABLE_SIGNUP": false,
+     "DEFAULT_USER_ROLE": "pending", ...}
+
+$ curl -s -X POST .../api/v1/auths/signup \
+    -d '{"name":"Sam Second", ...}'
+{"detail":"You do not have permission
+  to access this resource. ..."}   (403)
+
+2. The admin turns sign-ups back on
+   (POST the full config with
+   "ENABLE_SIGNUP": true) and Sam
+   signs up again:
+
+{... "role": "pending", ...}
+
+   Pending means it — Sam's token
+   gets the same refusal from
+   /api/models.
+
+3. The admin promotes him
+   (POST /api/v1/users/<id>/update
+   {"role":"user"}), and a fresh
+   sign-in confirms: "role": "user".
+
+4. A fresh user still sees NO models
+   — not even one to chat with:
+
+$ curl -s .../api/models   (Sam's token)
+{"data":[]}
+
+5. The admin builds a preset
+   (chapter 9) —
+
+$ curl -s -X POST .../api/v1/models/create -d \
+  '{"id":"house-explainer",
+    "name":"House Explainer",
+    "base_model_id":"smollm2-q4km.gguf",
+    "params":{"system":"You explain things
+      plainly, in short paragraphs, and
+      say when you are unsure."}, ...}'
+{... "access_grants": [], ...}
+
+   — private by default: Sam's picker
+   is still empty. The admin grants
+   Sam read access (POST
+   /api/v1/models/model/access/update):
+
+$ curl -s .../api/models   (Sam's token)
+  house-explainer        <- appears
+
+6. But Sam chatting with it fails:
+
+{"detail":"Model not found"}
+
+   In 0.12.3 the grantee needs access
+   to the BASE model as well. The same
+   grant call with the base model's id
+   ("smollm2-q4km.gguf") fixes it, and
+   Sam's chat answers (through the
+   preset, on its base model):
+
+"content": "A kettle is a portable,
+  heated pot filled with boiling water
+  that serves as an alternative to
+  traditional coffee cups. It prov..."
+(cut off in capture — a 135M model's
+kettle, not ours; the admin's own
+preset chat, for the record, called
+it "a versatile pot of water ... for
+rinsing dishes". Chapter 8's point
+stands: the front door adds no wisdom.)
